@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Quorum desk</title>
+  <style>
+    :root { color-scheme: dark; --bg:#090b0e; --card:#12161c; --ink:#e9eef4; --muted:#8d98a6; --line:#222a33; --long:#7dffa3; --short:#ff8b9a; --flat:#8d98a6; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font: 16px/1.45 ui-sans-serif, system-ui, sans-serif; background: var(--bg); color: var(--ink); }
+    header, main { max-width: 980px; margin: 0 auto; padding: 1.2rem; }
+    h1 { font-size: 1.05rem; letter-spacing: .08em; text-transform: uppercase; margin: 0 0 .35rem; }
+    .muted { color: var(--muted); }
+    .row { display: flex; gap: .75rem; flex-wrap: wrap; margin: 1rem 0; }
+    .stat { background: var(--card); border: 1px solid var(--line); padding: .7rem .9rem; min-width: 7.5rem; }
+    .stat b { display: block; font-size: 1.15rem; }
+    article { border-top: 1px solid var(--line); padding: 1rem 0; }
+    .long { color: var(--long); font-weight: 700; }
+    .short { color: var(--short); font-weight: 700; }
+    .flat { color: var(--flat); font-weight: 700; }
+    pre { white-space: pre-wrap; background: var(--card); border: 1px solid var(--line); padding: .8rem; }
+    .disclaimer { font-size: .85rem; color: var(--muted); margin-top: 2rem; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Quorum</h1>
+    <p class="muted" id="stamp">Loading last cycle…</p>
+    <div class="row" id="stats"></div>
+    <pre id="briefing" hidden></pre>
+  </header>
+  <main>
+    <section id="positions"></section>
+    <section id="list"></section>
+    <p class="disclaimer" id="disc"></p>
+  </main>
+  <script>
+    fetch("./last_run.json")
+      .then((r) => r.json())
+      .then((d) => {
+        document.getElementById("stamp").textContent =
+          (d.generated_at || "") + " · " + (d.mode || "paper");
+        document.getElementById("stats").innerHTML = [
+          ["Equity", d.equity],
+          ["Cash", d.cash],
+          ["PnL %", d.pnl_pct],
+          ["Open", (d.positions || []).length],
+        ]
+          .map(([k, v]) => `<div class="stat"><span class="muted">${k}</span><b>${v}</b></div>`)
+          .join("");
+        const st = d.studio || {};
+        if (st.briefing) {
+          const el = document.getElementById("briefing");
+          el.hidden = false;
+          el.textContent = st.briefing + (st.posts && st.posts[0] ? "\n\n" + st.posts[0] : "");
+        }
+        document.getElementById("positions").innerHTML =
+          (d.positions || [])
+            .map((p) => `<p><span class="${p.side}">${p.symbol}</span> ${p.side} qty ${p.qty} avg ${p.avg}</p>`)
+            .join("");
+        document.getElementById("list").innerHTML = (d.decisions || [])
+          .map((x) => {
+            const cls = x.side || "flat";
+            return `<article>
+              <div><span class="${cls}">${x.symbol} ${String(x.side).toUpperCase()}</span>
+              · ${x.venue || ""} · last ${x.last} · 24h ${x.change_24h_pct}% · conf ${x.confidence}</div>
+              <p>${x.thesis || ""}</p>
+              <p class="muted">${x.bear || ""}</p>
+              <p class="muted">${x.news || ""}</p>
+              <p class="muted">${x.veto || x.invalidation || ""}</p>
+            </article>`;
+          })
+          .join("");
+        document.getElementById("disc").textContent = d.disclaimer || "";
+      })
+      .catch(() => {
+        document.getElementById("stamp").textContent = "No last_run.json. Run: python3 -m quorum run";
+      });
+  </script>
+</body>
+</html>
