@@ -1,0 +1,50 @@
+mode: paper                 # paper | dry-run | live (live refused unless confirm_live: true)
+confirm_live: false
+quote: USDT
+starting_cash: 10000
+max_position_pct: 0.15
+max_open_positions: 4
+min_confidence: 0.62
+max_realized_vol_pct: 12
+max_daily_loss_pct: 3
+lookback_hours: 48
+interval: 1h
+
+watchlist:
+  - BTC
+  - ETH
+  - SOL
+  - BNB
+  - XRP
+  - DOGE
+
+venues:
+  - binanceus
+  - coinbase
+  - kraken
+
+solana:
+  enabled: false
+  rpc: https://api.mainnet-beta.solana.com
+  mints: []
+
+news:
+  enabled: true
+  provider: none            # none | firecrawl
+  firecrawl_api: https://api.firecrawl.dev
+  max_headlines: 3
+
+llm:
+  enabled: false
+  base_url: http://127.0.0.1:11434/v1
+  model: llama3.1
+  api_key_env: LLM_API_KEY
+
+studio:
+  enabled: true
+  emit_voice_script: true
+  emit_posts: true
+
+live:
+  executor: jesse           # jesse | freqtrade | solana-bot — process boundary only
+  dry_run: true

@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+.env
+memory/book.json
+memory/last_run.json
+memory/history.jsonl
+web/last_run.json
